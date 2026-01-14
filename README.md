@@ -1,3 +1,12 @@
+---
+title: Dining Bot
+emoji: 🍱
+colorFrom: green
+colorTo: blue
+sdk: docker
+pinned: false
+app_port: 7860
+---
 # UMass Dining Bot 🍽️
 
 An AI-powered nutrition assistant for the UMass Amherst dining experience. This application helps students navigate dining halls by providing personalized meal recommendations, tracking macros, and answering natural language queries about menus using a RAG (Retrieval-Augmented Generation) pipeline.
