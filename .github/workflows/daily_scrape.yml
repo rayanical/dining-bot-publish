@@ -25,6 +25,11 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
+      - name: Install Playwright browsers
+        working-directory: backend
+        run: |
+          playwright install chromium
+
       - name: Run data update script
         working-directory: backend
         env:
