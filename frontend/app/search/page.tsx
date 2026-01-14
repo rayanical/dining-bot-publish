@@ -54,7 +54,7 @@ export default function SearchPage() {
     useEffect(() => {
         async function fetchOptions() {
             try {
-                const res = await fetch('http://localhost:8000/api/food/options');
+                const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/food/options`);
                 if (res.ok) {
                     const data = await res.json();
                     setOptions(data);
@@ -78,7 +78,7 @@ export default function SearchPage() {
             if (minCal) params.append('min_calories', minCal);
             if (maxCal) params.append('max_calories', maxCal);
 
-            const res = await fetch(`http://localhost:8000/api/food/search?${params.toString()}`);
+            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/food/search?${params.toString()}`);
             if (res.ok) {
                 const data = await res.json();
                 setResults(data);

@@ -22,7 +22,8 @@ interface GlobalWithProcess {
  * The backend URL derived from environment variables.
  * Falls back to localhost if not defined.
  */
-const FASTAPI_URL = (globalThis as unknown as GlobalWithProcess).process?.env?.BACKEND_URL || 'http://localhost:8000/api/chat';
+const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+const FASTAPI_URL = `${BASE_URL}/api/chat`;
 
 /**
  * POST handler for the AI chat endpoint.

@@ -15,7 +15,7 @@ import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { Filter, X, ChevronDown, ChevronUp, Calendar, ArrowLeft, PlusCircle } from 'lucide-react';
 
-const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000';
+const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
 
 type FoodResult = {
     id: number;

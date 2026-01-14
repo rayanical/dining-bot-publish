@@ -16,8 +16,8 @@
  * - 500 if an unexpected error occurs while handling the request.
  */
 export const runtime = 'edge';
-
-const FASTAPI_URL = 'http://localhost:8000/api/chat';
+const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+const FASTAPI_URL = `${BASE_URL}/api/chat`;
 
 type ChatMessage = { id?: string; role: 'user' | 'assistant' | 'system'; content: string };
 

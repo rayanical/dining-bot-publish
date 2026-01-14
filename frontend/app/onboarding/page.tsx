@@ -111,7 +111,7 @@ export default function OnboardingPage() {
                 liked_cuisines: cuisines
             };
 
-            const response = await fetch('http://localhost:8000/api/users/profile', {
+            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/users/profile`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

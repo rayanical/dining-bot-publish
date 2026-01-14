@@ -194,7 +194,7 @@ export default function ChatPage() {
                             <p>
                                 <strong>Error:</strong> {String(error)}
                             </p>
-                            <p className="text-sm">Ensure backend at http://localhost:8000 is running.</p>
+                            <p className="text-sm">Please check your backend connection.</p>
                         </div>
                     </div>
                 )}

@@ -33,7 +33,7 @@ export default function LoginCheck() {
             if (data.user) {
                 // Check if profile exists in backend
                 try {
-                    const resp = await fetch(`http://localhost:8000/api/users/profile/${data.user.id}`);
+                    const resp = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/users/profile/${data.user.id}`);
                     if (resp.ok) {
                         router.push('/chat');
                         return;

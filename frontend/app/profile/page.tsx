@@ -102,7 +102,7 @@ export default function ProfilePage() {
                 setUserEmail(data.user.email || '');
                 setUserId(data.user.id);
 
-                const resp = await fetch(`http://localhost:8000/api/users/profile/${data.user.id}`);
+                const resp = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/users/profile/${data.user.id}`);
                 if (resp.status === 404) {
                     router.push('/onboarding');
                     return;
@@ -166,7 +166,7 @@ export default function ProfilePage() {
                 liked_cuisines: cuisines, 
             };
     
-            const response = await fetch('http://localhost:8000/api/users/profile', {
+            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/users/profile`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload),

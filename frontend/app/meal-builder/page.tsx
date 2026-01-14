@@ -15,7 +15,7 @@ import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { ArrowLeft, RefreshCw, ChefHat, Info } from 'lucide-react';
 
-const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000';
+const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
 
 type MealPlanItem = {
     id: number;
