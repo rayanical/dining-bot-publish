@@ -36,6 +36,10 @@ def create_user_profile(profile: UserProfileCreate, db: Session = Depends(get_db
 
     This handles saving dietary preferences, allergies, goals, and liked cuisines.
     It performs a full refresh of constraint data (deletes old, adds new).
+    
+    Also handles "ghost profiles" - when a user is deleted from Supabase Auth
+    but their profile remains in the database, and a new user signs up with
+    the same email.
 
     Args:
         profile (UserProfileCreate): The profile data payload.
@@ -45,7 +49,28 @@ def create_user_profile(profile: UserProfileCreate, db: Session = Depends(get_db
         dict: Success status.
     """
     try:
-        # 1. Get or create user
+        # 1. Check for ghost profile (same email, different user_id)
+        existing_user_with_email = db.query(User).filter(
+            User.email == profile.email,
+            User.id != profile.user_id
+        ).first()
+        
+        if existing_user_with_email:
+            # This is a ghost profile - delete all related data
+            ghost_id = existing_user_with_email.id
+            logger.info(f"Found ghost profile for email {profile.email}. Cleaning up old user {ghost_id}")
+            
+            # Delete related data first (foreign key constraints)
+            db.query(DietaryConstraint).filter(DietaryConstraint.user_id == ghost_id).delete()
+            db.query(Goal).filter(Goal.user_id == ghost_id).delete()
+            db.query(DietHistory).filter(DietHistory.user_id == ghost_id).delete()
+            
+            # Delete the ghost user
+            db.query(User).filter(User.id == ghost_id).delete()
+            db.commit()
+            logger.info(f"Ghost profile {ghost_id} cleaned up successfully")
+
+        # 2. Get or create user
         user = db.query(User).filter(User.id == profile.user_id).first()
         if not user:
             user = User(id=profile.user_id, email=profile.email)
@@ -53,7 +78,7 @@ def create_user_profile(profile: UserProfileCreate, db: Session = Depends(get_db
             db.commit()
             db.refresh(user)
 
-        # 2. CLEAR OLD DATA
+        # 3. CLEAR OLD DATA for current user
         db.query(DietaryConstraint).filter(DietaryConstraint.user_id == user.id).delete()
         db.query(Goal).filter(Goal.user_id == user.id).delete()
 
