@@ -1,0 +1,59 @@
+# === General ===
+.DS_Store
+*.log
+*.env
+*.env.*
+.env.local
+.env.production
+__pycache__/
+*.py[cod]
+*.sqlite3
+.env
+.env.*
+package-lock.json
+
+# === Python / FastAPI ===
+venv/
+env/
+*.egg-info/
+__pycache__/
+.mypy_cache/
+.pytest_cache/
+.idea/
+.vscode/
+
+# === Node / Bun / Next.js ===
+node_modules/
+bun.lockb
+.next/
+out/
+dist/
+coverage/
+*.tsbuildinfo
+.vercel
+
+# Common package manager debug logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# === OS ===
+Thumbs.db
+.DS_Store
+ehthumbs.db
+Desktop.ini
+
+# === Deployment / Cloud ===
+*.pem
+*.key
+*.crt
+*.cert
+.aws/
+.venv/
+build/
+.cache/
+
+# === Misc ===
+*.swp
+*.swo
