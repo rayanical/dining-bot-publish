@@ -51,7 +51,7 @@ def get_db():
     finally:
         db.close()
 
-@router.post("/")
+@router.post("")
 def chat(req: ChatRequest, db: Session = Depends(get_db)):
     """
     Streaming chat endpoint that yields text chunks.
