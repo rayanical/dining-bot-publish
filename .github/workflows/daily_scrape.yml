@@ -28,7 +28,7 @@ jobs:
       - name: Install Playwright browsers
         working-directory: backend
         run: |
-          playwright install chromium
+          python -m playwright install --with-deps chromium
 
       - name: Run data update script
         working-directory: backend
