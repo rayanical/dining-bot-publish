@@ -23,7 +23,9 @@ load_dotenv(env_path)
 DATABASE_URL = os.getenv("DATABASE_URL")
 if not DATABASE_URL:
     raise ValueError(
-        f"DATABASE_URL not found in environment variables. Please create {env_path} with DATABASE_URL set."
+        "DATABASE_URL is missing! "
+        "If you are on Hugging Face, go to Settings -> Secrets and add DATABASE_URL. "
+        "If you are local, make sure your .env file exists."
     )
 
 engine = create_engine(DATABASE_URL)
