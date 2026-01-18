@@ -44,6 +44,8 @@ export async function POST(req: Request) {
             const user_id = req.headers.get('X-User-ID') || null;
             // Forward manual filters if provided
             const filters = body.filters || null;
+            // Forward demo mode flag
+            const demo_mode = body.demo_mode || false;
             response = await fetch(FASTAPI_URL, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -51,6 +53,7 @@ export async function POST(req: Request) {
                     messages: body.messages,
                     user_id,
                     filters,
+                    demo_mode,
                 }),
             });
         } else if (body.prompt) {

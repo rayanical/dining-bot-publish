@@ -80,7 +80,13 @@ export default function FoodLogPage() {
 
     // Log Control State (Global)
     const [mealType, setMealType] = useState<string>('Dinner');
-    const [logDate, setLogDate] = useState<string>(new Date().toISOString().slice(0, 10));
+    // Use local date to avoid timezone issues (UTC would show tomorrow after 7pm EST)
+    const [logDate, setLogDate] = useState<string>(() => {
+        const now = new Date();
+        return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+    });
+    // Demo mode: show menus from Dec 12, 2025
+    const [isDemoMode, setIsDemoMode] = useState<boolean>(true);
 
     // Totals
     const totalCalories = dailyLog.reduce((sum, entry) => sum + (entry.calories || 0), 0);
@@ -138,6 +144,11 @@ export default function FoodLogPage() {
             if (maxCal) params.append('max_calories', maxCal);
             
             params.append('limit', '50');
+            
+            // Add demo mode parameter
+            if (isDemoMode) {
+                params.append('demo_mode', 'true');
+            }
 
             const res = await fetch(`${BACKEND_URL}/api/food/search?${params.toString()}`);
             if (!res.ok) throw new Error(await res.text());
@@ -239,6 +250,14 @@ export default function FoodLogPage() {
                 </button>
             </header>
 
+            {/* Demo Mode Banner */}
+            {isDemoMode && (
+                <div className="bg-amber-100 border border-amber-300 px-4 py-2 text-amber-800 text-sm rounded-xl flex items-center">
+                    <span className="mr-2">⚠️</span>
+                    <span><strong>DEMO MODE:</strong> Showing menus from Dec 12, 2025 because university menus are unavailable during break. Your progress is still tracked for today.</span>
+                </div>
+            )}
+
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 
                 {/* --- LEFT COLUMN: Search & Entry --- */}
@@ -265,6 +284,24 @@ export default function FoodLogPage() {
                                 className="px-3 py-1.5 border border-gray-300 rounded-md text-sm bg-white cursor-pointer hover:border-[#881C1B]" 
                             />
                         </div>
+                        {/* Demo Mode Toggle */}
+                        <label className="flex items-center cursor-pointer" title="Toggle Demo Mode">
+                            <span className="text-sm font-bold text-gray-700 mr-2">Demo:</span>
+                            <div className="relative">
+                                <input
+                                    type="checkbox"
+                                    checked={isDemoMode}
+                                    onChange={() => setIsDemoMode(!isDemoMode)}
+                                    className="sr-only"
+                                />
+                                <div className={`w-10 h-5 rounded-full shadow-inner transition-colors ${
+                                    isDemoMode ? 'bg-[#881C1B]' : 'bg-gray-300'
+                                }`}></div>
+                                <div className={`absolute w-4 h-4 bg-white rounded-full shadow top-0.5 left-0.5 transition-transform ${
+                                    isDemoMode ? 'translate-x-5' : 'translate-x-0'
+                                }`}></div>
+                            </div>
+                        </label>
                     </div>
 
                     {/* Messages */}

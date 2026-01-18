@@ -19,8 +19,10 @@ from app.core.rag import _get_user_profile
 from app.core.retrieval import retrieve_food_items
 from app.models import DietHistory, Goal, User
 
-router = APIRouter()
+# Demo mode date constant
+DEMO_DATE = date(2025, 12, 12)
 
+router = APIRouter()
 
 class MealBuilderRequest(BaseModel):
     """
@@ -34,6 +36,7 @@ class MealBuilderRequest(BaseModel):
         dining_halls (List[str]): Filter by dining halls.
         meals (List[str]): Filter by meals.
         max_items (int): Max items to suggest per plan.
+        demo_mode (bool): If True, use Dec 12 2025 menu data.
     """
     user_id: str
     date: Optional[Any] = None  # Allow Any to bypass initial strict typing, validated by parser
@@ -42,6 +45,7 @@ class MealBuilderRequest(BaseModel):
     dining_halls: Optional[List[str]] = None
     meals: Optional[List[str]] = None
     max_items: int = 4
+    demo_mode: Optional[bool] = False  # Demo mode: use historical menu data
 
     @model_validator(mode='before')
     @classmethod
@@ -277,6 +281,11 @@ def suggest_meal_plan(req: MealBuilderRequest, db: Session = Depends(get_db)):
         except ValueError:
             target_date = date.today()
 
+    # Determine menu date for "split reality" demo mode
+    # User's daily gap is calculated from target_date (their log date)
+    # Menu items are retrieved from demo date if demo_mode is enabled
+    menu_date = DEMO_DATE if req.demo_mode else target_date
+
     gap = _compute_daily_gap(db, req.user_id, target_date)
 
     target_calories = req.calorie_target if req.calorie_target is not None else gap["remaining_calories"]
@@ -304,13 +313,14 @@ def suggest_meal_plan(req: MealBuilderRequest, db: Session = Depends(get_db)):
 
     user_profile = _get_user_profile(db, req.user_id)
 
+    # Use menu_date for item retrieval (demo reality)
     items = retrieve_food_items(
         query="high protein options",
         db=db,
         user_profile=user_profile,
         limit=25,
         manual_filters=manual_filters or None,
-        current_date=target_date,
+        current_date=menu_date,
     )
 
     simplified = [item for item in _simplify_items(items) if item["calories"] or item["protein"]]

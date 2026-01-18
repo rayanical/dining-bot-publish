@@ -151,7 +151,10 @@ export default function DashboardPage() {
     const router = useRouter();
 
     const [userId, setUserId] = useState<string | null>(null);
-    const [selectedDate, setSelectedDate] = useState<string>(new Date().toISOString().slice(0, 10));
+    const [selectedDate, setSelectedDate] = useState<string>(() => {
+        const now = new Date();
+        return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+    });
     const [summary, setSummary] = useState<DailySummary | null>(null);
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);

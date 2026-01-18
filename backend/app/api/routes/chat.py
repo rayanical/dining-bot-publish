@@ -36,12 +36,14 @@ class ChatRequest(BaseModel):
         messages (List[Dict]): Full chat history from AI SDK (optional).
         user_id (str): The requesting user's ID.
         filters (ManualFilters): UI-applied filters.
+        demo_mode (bool): If True, uses Dec 12 2025 menus for demonstration.
     """
     # Either a plain query or full UI messages from the frontend AI SDK
     query: Optional[str] = None
     messages: Optional[List[Dict[str, Any]]] = None
     user_id: Optional[str] = None
     filters: Optional[ManualFilters] = None  # Manual UI-selected filters
+    demo_mode: Optional[bool] = False  # Demo mode: use historical menu data
 
 def get_db():
     """Dependency to provide a database session."""
@@ -113,7 +115,16 @@ def chat(req: ChatRequest, db: Session = Depends(get_db)):
         raise HTTPException(status_code=400, detail="Query cannot be empty")
 
     try:
-        stream_gen = rag_answer_stream(query, db, user_id=req.user_id, history_text=history_text, manual_filters=manual_filters, current_date=date.today())
+        # Demo mode: use Dec 12 2025 menus, otherwise use today
+        menu_override = date(2025, 12, 12) if req.demo_mode else None
+        stream_gen = rag_answer_stream(
+            query, db,
+            user_id=req.user_id,
+            history_text=history_text,
+            manual_filters=manual_filters,
+            current_date=date.today(),  # Always today for user logs
+            menu_date=menu_override,     # Demo date for menus if demo mode
+        )
         return StreamingResponse(stream_gen, media_type="text/plain")
     except Exception as e:
         return StreamingResponse(iter([f"Error processing query: {str(e)}"]), media_type="text/plain", status_code=500)

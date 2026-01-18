@@ -121,6 +121,7 @@ def rag_answer_stream(
     history_text: Optional[str] = None,
     manual_filters: Optional[Dict] = None,
     current_date: Optional[date] = None,
+    menu_date: Optional[date] = None,
 ) -> Iterator[str]:
     """
     Run the RAG pipeline and stream the generated answer as chunks.
@@ -128,6 +129,9 @@ def rag_answer_stream(
     The function retrieves relevant menu items for the current day based on the
     user's natural language question and optional profile, then streams an LLM
     answer in text chunks suitable for HTTP streaming responses.
+
+    This function supports "split reality" mode where menu data can come from a
+    different date than user logs, enabling demo mode functionality.
 
     Args:
         query (str): The user's natural language question.
@@ -137,19 +141,27 @@ def rag_answer_stream(
         history_text (Optional[str]): Optional conversation history for context.
         manual_filters (Optional[Dict]): Manual UI-selected filters that take priority
             over AI-parsed filters. Keys: 'dining_halls' (List[str]), 'meals' (List[str]).
-        current_date (Optional[date]): Date to filter by. If None, uses today's date.
+        current_date (Optional[date]): Date for user logs/progress. If None, uses today's date.
+        menu_date (Optional[date]): Date for menu retrieval. If None, falls back to current_date.
+            Used for demo mode to show menus from a specific date.
 
     Returns:
         Iterator[str]: A generator that yields segments of the assistant's response.
     """
+    # Determine target dates for split reality
+    target_log_date = current_date or date.today()
+    target_menu_date = menu_date or target_log_date
+    
     user_profile = _get_user_profile(db, user_id)
-    daily_status = _get_daily_status(db, user_id, current_date)
+    # Use log date for daily status (user's real progress)
+    daily_status = _get_daily_status(db, user_id, target_log_date)
+    # Use menu date for food retrieval (demo reality)
     food_items = retrieve_food_items(
         query,
         db,
         user_profile,
         limit=10,
         manual_filters=manual_filters,
-        current_date=current_date,
+        current_date=target_menu_date,
     )
     return generate_answer(query, food_items, user_profile, history_text, daily_status=daily_status)

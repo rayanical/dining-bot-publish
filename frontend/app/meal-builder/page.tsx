@@ -52,9 +52,15 @@ export default function MealBuilderPage() {
     const [error, setError] = useState<string | null>(null);
     const [mealPlans, setMealPlans] = useState<MealPlan[]>([]);
     const [logStatus, setLogStatus] = useState<string | null>(null);
-    const [selectedDate, setSelectedDate] = useState<string>(new Date().toISOString().slice(0, 10));
+    // Use local date to avoid timezone issues (UTC would show tomorrow after 7pm EST)
+    const [selectedDate, setSelectedDate] = useState<string>(() => {
+        const now = new Date();
+        return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+    });
     const [logMealType, setLogMealType] = useState<string>('Lunch');
     const [selectedHall, setSelectedHall] = useState<string>('All');
+    // Demo mode: show menus from Dec 12, 2025
+    const [isDemoMode, setIsDemoMode] = useState<boolean>(true);
     
     // Gap state
     const [remainingCalories, setRemainingCalories] = useState<number>(0);
@@ -93,14 +99,14 @@ export default function MealBuilderPage() {
                 setRemainingFat(remFat);
                 
                 // Fetch plans once we have the gap
-                fetchMealPlans(uid, dateStr, remCal, remPro, selectedHall);
+                fetchMealPlans(uid, dateStr, remCal, remPro, selectedHall, isDemoMode);
             }
         } catch (e) {
             console.error("Failed to fetch summary", e);
         }
     };
 
-    const fetchMealPlans = useCallback(async (uid: string, dateStr: string, calTarget: number, proTarget: number, hall: string) => {
+    const fetchMealPlans = useCallback(async (uid: string, dateStr: string, calTarget: number, proTarget: number, hall: string, demoMode: boolean) => {
         setLoading(true);
         setError(null);
         try {
@@ -115,6 +121,7 @@ export default function MealBuilderPage() {
                     protein_target: proTarget,
                     dining_halls: diningHalls,
                     max_items: 4,
+                    demo_mode: demoMode,
                 }),
             });
 
@@ -134,7 +141,7 @@ export default function MealBuilderPage() {
 
     const handleRefresh = () => {
         if (userId) {
-            fetchMealPlans(userId, selectedDate, remainingCalories, remainingProtein, selectedHall);
+            fetchMealPlans(userId, selectedDate, remainingCalories, remainingProtein, selectedHall, isDemoMode);
         }
     };
 
@@ -183,6 +190,14 @@ export default function MealBuilderPage() {
                 </div>
             </header>
 
+            {/* Demo Mode Banner */}
+            {isDemoMode && (
+                <div className="bg-amber-100 border border-amber-300 px-4 py-2 text-amber-800 text-sm rounded-xl flex items-center">
+                    <span className="mr-2">⚠️</span>
+                    <span><strong>DEMO MODE:</strong> Showing menus from Dec 12, 2025 because university menus are unavailable during break. Your progress is still tracked for today.</span>
+                </div>
+            )}
+
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 
                 {/* Sidebar: Controls & Gap */}
@@ -227,6 +242,28 @@ export default function MealBuilderPage() {
                                 <option value="Hampshire">Hampshire</option>
                                 <option value="Berkshire">Berkshire</option>
                             </select>
+                        </div>
+
+                        {/* Demo Mode Toggle */}
+                        <div className="space-y-2">
+                            <label className="text-sm font-medium text-gray-700">Demo Mode</label>
+                            <label className="flex items-center cursor-pointer" title="Toggle Demo Mode">
+                                <div className="relative">
+                                    <input
+                                        type="checkbox"
+                                        checked={isDemoMode}
+                                        onChange={() => setIsDemoMode(!isDemoMode)}
+                                        className="sr-only"
+                                    />
+                                    <div className={`w-10 h-5 rounded-full shadow-inner transition-colors ${
+                                        isDemoMode ? 'bg-[#881C1B]' : 'bg-gray-300'
+                                    }`}></div>
+                                    <div className={`absolute w-4 h-4 bg-white rounded-full shadow top-0.5 left-0.5 transition-transform ${
+                                        isDemoMode ? 'translate-x-5' : 'translate-x-0'
+                                    }`}></div>
+                                </div>
+                                <span className="text-sm text-gray-600 ml-2">{isDemoMode ? 'On' : 'Off'}</span>
+                            </label>
                         </div>
 
                         <div className="pt-4 border-t border-gray-100">

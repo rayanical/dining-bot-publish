@@ -5,6 +5,7 @@ This module provides endpoints for searching the dining hall menu database
 using structured filters (hall, meal, diet, etc.) or text search.
 """
 
+from datetime import date
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 from typing import List, Optional
@@ -12,6 +13,9 @@ from app.core.database import SessionLocal
 from app.models import DiningHallMenu
 from app.core.retrieval import retrieve_food_items
 from app.schemas import FoodItem
+
+# Demo mode date constant
+DEMO_DATE = date(2025, 12, 12)
 
 router = APIRouter()
 
@@ -31,6 +35,7 @@ def search_food(
     min_calories: Optional[float] = Query(None),
     max_calories: Optional[float] = Query(None),
     limit: int = Query(50),
+    demo_mode: bool = Query(False, description="Use Dec 12 2025 demo menu data"),
     db: Session = Depends(get_db)
 ):
     """
@@ -45,6 +50,7 @@ def search_food(
         min_calories (float): Minimum calorie count.
         max_calories (float): Maximum calorie count.
         limit (int): Max results to return.
+        demo_mode (bool): If True, use Dec 12 2025 menu data.
         db (Session): Database session.
 
     Returns:
@@ -62,12 +68,16 @@ def search_food(
         "max_calories": max_calories,
     }
 
+    # Use demo date if demo mode is enabled
+    target_date = DEMO_DATE if demo_mode else None
+
     # Pass empty query string so we rely purely on structured_filters
     items = retrieve_food_items(
         query="", 
         db=db,
         limit=limit,
-        structured_filters=structured_filters
+        structured_filters=structured_filters,
+        current_date=target_date,
     )
     return items
 

@@ -31,6 +31,7 @@ const MEALS = ['Breakfast', 'Lunch', 'Dinner', "Grab' n Go", 'Late Night'] as co
 const sharedState = {
     userId: null as string | null,
     filters: { dining_halls: [] as string[], meals: [] as string[] },
+    demoMode: true,  // Demo mode: show menus from Dec 12, 2025
 };
 
 // Create transport once outside component to avoid React compiler issues
@@ -38,9 +39,12 @@ const chatTransport = new TextStreamChatTransport({
     api: '/api/ai-chat',
     headers: () => ({ 'X-User-ID': sharedState.userId || '' }),
     body: () => {
-        const { filters } = sharedState;
+        const { filters, demoMode } = sharedState;
         const hasFilters = filters.dining_halls.length > 0 || filters.meals.length > 0;
-        return hasFilters ? { filters } : {};
+        return {
+            ...(hasFilters ? { filters } : {}),
+            demo_mode: demoMode,
+        };
     },
 });
 
@@ -58,6 +62,8 @@ export default function ChatPage() {
     // Filter state for dining hall and meal selection
     const [selectedHalls, setSelectedHalls] = useState<string[]>([]);
     const [selectedMeals, setSelectedMeals] = useState<string[]>([]);
+    // Demo mode state: shows menus from Dec 12, 2025
+    const [isDemoMode, setIsDemoMode] = useState<boolean>(true);
 
     // Keep shared state in sync with component state
     useEffect(() => {
@@ -67,6 +73,11 @@ export default function ChatPage() {
     useEffect(() => {
         sharedState.filters = { dining_halls: selectedHalls, meals: selectedMeals };
     }, [selectedHalls, selectedMeals]);
+
+    // Keep demo mode in sync
+    useEffect(() => {
+        sharedState.demoMode = isDemoMode;
+    }, [isDemoMode]);
 
     const toggleHall = (hall: string) => {
         setSelectedHalls((prev) => (prev.includes(hall) ? prev.filter((h) => h !== hall) : [...prev, hall]));
@@ -116,9 +127,30 @@ export default function ChatPage() {
             <header className="p-4 border-b shadow-sm bg-white">
                 <div className="flex items-center justify-between">
                     <h1 className="text-xl font-bold text-gray-900">Dining Bot</h1>
-                    <div className="flex space-x-4">
+                    <div className="flex items-center space-x-4">
+                        {/* Demo Mode Toggle */}
+                        <label className="flex items-center cursor-pointer" title="Toggle Demo Mode">
+                            <span className="text-sm text-gray-600 mr-2">Demo</span>
+                            <div className="relative">
+                                <input
+                                    type="checkbox"
+                                    checked={isDemoMode}
+                                    onChange={() => setIsDemoMode(!isDemoMode)}
+                                    className="sr-only"
+                                />
+                                <div className={`w-10 h-5 rounded-full shadow-inner transition-colors ${
+                                    isDemoMode ? 'bg-[#881C1B]' : 'bg-gray-300'
+                                }`}></div>
+                                <div className={`absolute w-4 h-4 bg-white rounded-full shadow top-0.5 left-0.5 transition-transform ${
+                                    isDemoMode ? 'translate-x-5' : 'translate-x-0'
+                                }`}></div>
+                            </div>
+                        </label>
                         <Link href="/dashboard" className="text-[#881C1B] hover:underline font-medium">
                             Dashboard
+                        </Link>
+                        <Link href="/meal-builder" className="text-[#881C1B] hover:underline font-medium">
+                            Meal Builder
                         </Link>
                         <Link href="/dashboard/log" className="text-[#881C1B] hover:underline font-medium">
                             Log Food
@@ -129,6 +161,14 @@ export default function ChatPage() {
                     </div>
                 </div>
             </header>
+
+            {/* Demo Mode Banner */}
+            {isDemoMode && (
+                <div className="bg-amber-100 border-b border-amber-300 px-4 py-2 text-amber-800 text-sm flex items-center">
+                    <span className="mr-2">⚠️</span>
+                    <span><strong>DEMO MODE:</strong> Showing menus from Dec 12, 2025 because university menus are unavailable during break. Your progress is still tracked for today.</span>
+                </div>
+            )}
 
             {/* Filter toggles for dining halls and meals */}
             <div className="p-3 bg-white border-b space-y-2">
