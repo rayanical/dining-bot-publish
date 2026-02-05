@@ -17,6 +17,13 @@ export default function LoginPage() {
     const router = useRouter();
     const supabase = createClient();
 
+    // Fire-and-forget request to wake up the backend server (handles cold start on free-tier hosting)
+    useEffect(() => {
+        fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/`).catch(() => {
+            // Silently ignore errors - we just want to wake the server
+        });
+    }, []);
+
     useEffect(() => {
         const checkSession = async () => {
             const { data } = await supabase.auth.getUser();
@@ -41,7 +48,10 @@ export default function LoginPage() {
     if (loading) {
         return (
             <main className="flex flex-col items-center justify-center h-screen bg-gray-50">
-                <p className="text-gray-600">Loading...</p>
+                <div className="flex flex-col items-center space-y-4">
+                    <div className="w-10 h-10 border-4 border-gray-300 border-t-[#881C1B] rounded-full animate-spin"></div>
+                    <p className="text-gray-600">Loading...</p>
+                </div>
             </main>
         );
     }
